@@ -43,10 +43,6 @@ async def init_db():
 
         await db.commit()
 
-
-# ==========================
-# USERS
-# ==========================
 async def add_user(user_id, username, first_name, invited_by=None):
     async with aiosqlite.connect(DB_NAME) as db:
         cur = await db.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,))
@@ -160,10 +156,6 @@ async def get_top_user():
         )
         return await cur.fetchone()
 
-
-# ==========================
-# GIVEAWAY
-# ==========================
 async def set_giveaway(status: int):
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute("UPDATE settings SET giveaway_active=? WHERE id=1", (status,))
@@ -189,10 +181,6 @@ async def get_giveaway_prize():
         row = await cur.fetchone()
         return row[0] if row else "🎁 Sovg‘a yo‘q"
 
-
-# ==========================
-# ADS SYSTEM
-# ==========================
 async def create_ads_order(user_id, package, price, ad_text):
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute(

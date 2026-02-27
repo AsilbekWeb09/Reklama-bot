@@ -54,10 +54,6 @@ PAYMENT_OWNER = os.getenv("PAYMENT_OWNER")
 sub_cache = {}
 flood_cache = {}
 
-
-# ==========================
-# ANTI FLOOD
-# ==========================
 def anti_flood(user_id):
     now = time.time()
     if user_id in flood_cache:
@@ -66,10 +62,6 @@ def anti_flood(user_id):
     flood_cache[user_id] = now
     return True
 
-
-# ==========================
-# SUBSCRIBE CHECK
-# ==========================
 async def is_subscribed(user_id: int, context: ContextTypes.DEFAULT_TYPE):
     if user_id in sub_cache and sub_cache[user_id] is True:
         return True
@@ -84,10 +76,6 @@ async def is_subscribed(user_id: int, context: ContextTypes.DEFAULT_TYPE):
         print("SUBSCRIBE ERROR:", e)
         return False
 
-
-# ==========================
-# SUBSCRIBE MESSAGE
-# ==========================
 async def send_subscribe_message(chat_id, context):
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📢 Kanalga obuna bo‘lish", url=f"https://t.me/{CHANNEL_USERNAME.replace('@','')}")],
@@ -101,10 +89,6 @@ async def send_subscribe_message(chat_id, context):
         reply_markup=keyboard
     )
 
-
-# ==========================
-# MENU
-# ==========================
 async def send_menu(chat_id, user_id, context, first_name="User"):
     bot_username = (await context.bot.get_me()).username
     referral_link = f"https://t.me/{bot_username}?start={user_id}"
@@ -136,10 +120,6 @@ async def send_menu(chat_id, user_id, context, first_name="User"):
 
     await context.bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard)
 
-
-# ==========================
-# START
-# ==========================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
@@ -166,10 +146,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await send_menu(update.effective_chat.id, user_id, context, user.first_name)
 
-
-# ==========================
-# CALLBACK HANDLER
-# ==========================
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -259,14 +235,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📌 Endi reklama matnini yuboring:"
         )
 
-
-# ==========================
-# MESSAGE HANDLER
-# ==========================
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
-    # ADS TEXT INPUT
     if context.user_data.get("ads_text_mode"):
         if update.message.text is None:
             await update.message.reply_text("❗ Reklama matnini TEXT qilib yuboring.")
@@ -293,7 +264,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # RECEIPT PHOTO
     if context.user_data.get("waiting_receipt"):
         if not update.message.photo:
             await update.message.reply_text("❗ Chekni rasm ko‘rinishida yuboring (screenshot).")
@@ -336,7 +306,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # ADMIN TEXT MODES
     if user_id == ADMIN_ID:
         if update.message.text is None:
             return
@@ -431,10 +400,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"✅ Prize saqlandi: {text}")
             return
 
-
-# ==========================
-# ADMIN PANEL
-# ==========================
 async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         await update.message.reply_text("❌ Admin emassiz.")
@@ -472,10 +437,6 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=keyboard
     )
 
-
-# ==========================
-# ADMIN CALLBACK
-# ==========================
 async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -485,7 +446,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     data = query.data
 
-    # USER LIST PAGINATION
     if data.startswith("admin_users_"):
         page = int(data.split("_")[-1])
         users = await get_users_page(page=page, per_page=10)
@@ -505,7 +465,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.message.reply_text(text, reply_markup=InlineKeyboardMarkup([nav_buttons]))
 
-    # ADS ORDERS LIST
     elif data == "admin_ads":
         orders = await get_waiting_orders()
 
@@ -533,7 +492,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=keyboard
             )
 
-    # APPROVE ORDER
     elif data.startswith("approve_"):
         oid = int(data.split("_")[1])
         order = await get_ads_order(oid)
@@ -554,7 +512,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.message.reply_text(f"✅ Order tasdiqlandi! (ID: {oid})")
 
-    # REJECT ORDER
     elif data.startswith("reject_"):
         oid = int(data.split("_")[1])
         order = await get_ads_order(oid)
@@ -573,12 +530,10 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.message.reply_text(f"❌ Order rad etildi. (ID: {oid})")
 
-    # BROADCAST
     elif data == "admin_broadcast":
         context.user_data["broadcast_mode"] = True
         await query.message.reply_text("📢 Broadcast matnini yuboring:")
 
-    # GIVEAWAY ON/OFF
     elif data == "admin_giveaway_on":
         prize = await get_giveaway_prize()
 
@@ -593,7 +548,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await set_giveaway(0)
         await query.message.reply_text("❌ Giveaway o‘chirildi!")
 
-    # PRIZE MENU
     elif data == "admin_set_prize":
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("🖼 NFT", callback_data="prize_nft")],
@@ -619,7 +573,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["prize_custom_mode"] = True
         await query.message.reply_text("✍️ Prize nomini yozing (misol: ⭐ 200 Stars yoki 🎁 Premium 1 oy)")
 
-    # WINNER TOP BALL
     elif data == "admin_winner_top":
         status = await get_giveaway()
         if status == 0:
@@ -656,7 +609,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             await query.message.reply_text("⚠️ Winnerga xabar yuborilmadi (user botni bloklagan).")
 
-    # BAN / UNBAN
     elif data == "admin_ban":
         context.user_data["ban_mode"] = True
         await query.message.reply_text("🚫 Ban qilinadigan user ID yuboring:")
@@ -665,7 +617,6 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["unban_mode"] = True
         await query.message.reply_text("✅ Unban qilinadigan user ID yuboring:")
 
-    # POINTS
     elif data == "admin_add_points":
         context.user_data["add_points_mode"] = True
         await query.message.reply_text("➕ Format: user_id ball")
@@ -674,15 +625,10 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["remove_points_mode"] = True
         await query.message.reply_text("➖ Format: user_id ball")
 
-    # USER INFO
     elif data == "admin_userinfo":
         context.user_data["userinfo_mode"] = True
         await query.message.reply_text("🔍 User ID yuboring:")
 
-
-# ==========================
-# RUN BOT
-# ==========================
 async def run_bot():
     await init_db()
 
